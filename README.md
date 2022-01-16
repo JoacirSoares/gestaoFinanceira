@@ -29,37 +29,6 @@ O projeto foi desenvolvido utilizando as seguintes tecnologias
 - [SQL](#-tecnologias-utilizadas)
 ---
 
-<h1 align="center">
-    Gestão Financeira
-</h1>
-
-
-<h1 align="center">
-    <img src="https://ik.imagekit.io/n34ecpgaywp1/indoconexao3_ohx2iU28l.jpg?ik-sdk-version=javascript-1.4.3&updatedAt=1642373969280">
-</h1>
-
-
-# Indice
-
-- [Sobre](#-sobre)
-- [Tecnologias Utilizadas](#-tecnologias-utilizadas)
-- [Ferramentas Utilizadas](#-ferramentas-utilizadas)
-- [Como baixar o projeto](#-como-baixar-o-projeto)
-
-## 🔖&nbsp; Sobre
-
-O projeto *Controle de Ganhos e Gastos Pessoais* é um sistema simples e prático que que foi criado com o intuito de atender aos requisitos solicitados do desafio para o processo seletivo do programa PubFuture.
-
----
-
-## 🚀 Tecnologias utilizadas
-
-O projeto foi desenvolvido utilizando as seguintes tecnologias
-
-- [Java](#-tecnologias-utilizadas)
-- [SQL](#-tecnologias-utilizadas)
----
-
 ## 🛠 Ferramentas utilizadas
 
 O projeto foi desenvolvido utilizando as seguintes tecnologias
