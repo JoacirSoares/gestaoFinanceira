@@ -1,18 +1,14 @@
 package application;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Scanner;
 
+import dao.ContaDAO;
 import entities.Conta;
 import entities.Contas;
-import entities.Usuario;
+import entities.Despesa;
+import entities.Receita;
 import entities.enums.TipoConta;
 import entities.enums.TipoDespesa;
 import entities.enums.TipoReceita;
@@ -30,7 +26,6 @@ public class Program {
 	// Crei uma variavel que receberá a variavel apcao tranformada em inteiro
 	private static int opcaoEscolhida = -1;
 	// Criei um objeto do tipo Usuario
-	private static Usuario novoUsuario = new Usuario();
 	private static Contas contas = new Contas();
 	
 	private static String nomeUsuario = "";
@@ -38,7 +33,7 @@ public class Program {
 	private static int idadeUsu = 0;
 	private static String cpfUsuario = ""; 
 	
-	private static Conta novaConta = null; 
+	private static Conta novaConta = new Conta(); 
 	private static TipoConta tipoConta = null; 
 	private static TipoReceita tipoReceita = null;
 	private static TipoDespesa tipoDespesa = null;
@@ -51,6 +46,7 @@ public class Program {
 	private static String cpf1;
 	private static String cpf2;
 	private static long eNumero;
+	private static ContaDAO contaDao = new ContaDAO();
 	
 	/**
 	 * Página de inicio
@@ -60,7 +56,7 @@ public class Program {
 			
 			System.out.println();
 			System.out.println("---------------------");
-			System.out.println("   Seção de contas.");
+			System.out.println("   Sessão de contas.");
 			System.out.println("---------------------");
 			System.out.println();
 	
@@ -90,9 +86,11 @@ public class Program {
 					if(introduzirConta()) {
 						
 						// Criando uma conta;
-						novaConta = new Conta(novoUsuario);
+						novaConta.setNome(nomeUsuario);
+						novaConta.setIdade(idadeUsu);
 						novaConta.setTipoConta(tipoConta);
 						novaConta.setInstituicaoFinanceira(instituicaoFinanceira);
+						contaDao.inserir(novaConta);
 						
 						// Adcionando a um array de contas
 						contas.addConta(novaConta);
@@ -119,11 +117,11 @@ public class Program {
 						do {
 							System.out.print("Digite o cpf da conta que deseja fazer a transferência: ");
 							cpf1 = sc.nextLine();
-						} while(String.valueOf(cpf1).toString().length() != 11);
+						} while(String.valueOf(cpf1).length() != 11);
 						do {
 							System.out.print("Digite o cpf da conta que receberá a transferência: ");
 							cpf2 = sc.nextLine();
-						} while(String.valueOf(cpf2).toString().length() != 11);
+						} while(String.valueOf(cpf2).length() != 11);
 						do {
 							System.out.print("Digite o valor da transferência: ");
 							try {
@@ -140,12 +138,12 @@ public class Program {
 							System.out.print("O cpf da transferencia não pode ser igual ao cpf que receberá a transferencia.");
 							break;
 						}
-						// fazer tratamento de erros
+						
 						for(Conta conta : contas.getContas()) {
-							if(conta.getUsuario().getCpf().equals(cpf1)) {
+							if(conta.getCpf().equals(cpf1)) {
 								conta.addDespesa("Transferência de" + cpf2, valorTransferencia, new Date(), TipoDespesa.OUTROS);
 							}
-							if(conta.getUsuario().getCpf().equals(cpf2)) {
+							if(conta.getCpf().equals(cpf2)) {
 								conta.addReceita("Transferência de" + cpf1, valorTransferencia, new Date(), TipoReceita.OUTROS);
 							}
 						}
@@ -171,30 +169,29 @@ public class Program {
 		
 		System.out.println();
 		System.out.println("--------------------.");
-		System.out.println("   Seção de contas.");
+		System.out.println("   Sessão de contas.");
 		System.out.println("---------------------");
 		System.out.println();
 
-		System.out.print("Digite o rg da conta que deseja editar: ");
-		String rg = sc.nextLine();
+		System.out.print("Digite o cpf da conta que deseja editar: ");
+		String cpf = sc.nextLine();
 		// fazer tratamento de erros
 		for(Conta conta : contas.getContas()) {
-			if(conta.getUsuario().getCpf().equals(rg)) {
-				System.out.println(conta.getUsuario().getCpf());
+			if(conta.getCpf().equals(cpf)) {
+				System.out.println(conta.getCpf());
 				do {
 					
 					System.out.println();
 					System.out.println("----------------------------");
-					System.out.println("   Seção de editar conta.");
+					System.out.println("   Sessão de editar conta.");
 					System.out.println("----------------------------");
 					System.out.println();
-					System.out.println("1. Modificar Despesas e Receita da conta.");
+					System.out.println("1. Modificar Despesas e Receitas da conta.");
 					System.out.println("2. Modificar o nome da conta.");
-					System.out.println("3. Modificar o tipo da conta.");
+					System.out.println("3. Modificar o tipo da conta(carteira, corrente, poupanca).");
 					System.out.println("4. Modificar a instituição financeira da conta.");
 					System.out.println("5. Modificar a idade do usuário.");
-					System.out.println("6. Modificar o rg do usuário.");
-					System.out.println("7. Voltar para a pagina inicial.");
+					System.out.println("6. Voltar para a pagina inicial.");
 					
 					do {
 						System.out.println();
@@ -205,11 +202,12 @@ public class Program {
 							// Passando o valor que o usuario introduzio para um inteiro
 							opcaoEscolhida = Integer.parseInt(opcao);
 						} catch(Exception e) {
+							System.out.println();
 							System.out.println("Você tem que introduzir um número "
 									+ "para que umas dessas opções seja realizada!");
 						}
 						// Continua o programa caso ocorra algum erro
-					} while(opcaoEscolhida < 0 || opcaoEscolhida > 7 || opcao.isEmpty());
+					} while(opcaoEscolhida < 0 || opcaoEscolhida > 6 || opcao.isEmpty());
 					
 					switch (opcaoEscolhida) {
 						case 1: // Modifica Despesas e Receita da conta
@@ -218,29 +216,28 @@ public class Program {
 						case 2: // Modifica o nome da conta
 							System.out.print("Digite o novo nome da conta: ");
 							String novoNome = sc.nextLine();
-							conta.getUsuario().setNome(novoNome);
+							conta.setNome(novoNome);
+							contaDao.atualizarNome(conta); 
 							break;
 						case 3: // Modifica o tipo da conta
 							System.out.print("Digite o novo tipo da conta: ");
 							TipoConta novoTipo = TipoConta.valueOf(sc.next().toUpperCase());
 							conta.setTipoConta(novoTipo);
+							contaDao.atualizarTipoConta(conta); 
 							break;
 						case 4: // Modifica a instituição financeira da conta
 							System.out.print("Digite a nova instituição financeira da conta: ");
 							String novaInstituicaoFinanceira = sc.nextLine();
 							conta.setInstituicaoFinanceira(novaInstituicaoFinanceira);
+							contaDao.atualizarInstituicaoFinanceira(conta); 
 							break;
 						case 5: // Modifica a idade do usuário
 							System.out.print("Digite a nova idade do usuario: ");
 							int novaIdade = sc.nextInt();
-							conta.getUsuario().setIdade(novaIdade);
+							conta.setIdade(novaIdade);
+							contaDao.atualizarIdade(conta); 
 							break;
-						case 6: // Modifica o rg do usuário
-							System.out.print("Digite o novo rg do usuario: ");
-							String novoRg = sc.nextLine();
-							conta.getUsuario().setCPF(novoRg);
-							break;
-						case 7: // Volta para a pagina inicial
+						case 6: // Volta para a pagina inicial
 							paginaInicial();
 							break;
 						case 0: // Sai do Programa
@@ -253,6 +250,78 @@ public class Program {
 		}
 		
 	}
+	
+	/**
+	 * Metodo que visualiza o menu de opções do usuario
+	 */
+	private static void menuUsuario() {
+		do {
+		
+			System.out.println();
+			System.out.println("-----------------------------------");
+			System.out.println("   Sessão de despesas e receitas.");
+			System.out.println("-----------------------------------");
+			System.out.println();
+			System.out.println("1. Introduzir uma nova receita.");
+			System.out.println("2. Introduzir uma nova despesa.");
+			System.out.println("3. Mostrar receitas.");
+			System.out.println("4. Mostrar despesas.");
+			System.out.println("5. Mostrar saldo da conta.");
+			System.out.println("6. Mostrar sua conta.");
+			System.out.println("7. Voltar para a seção de contas.");
+			System.out.println("0. Sair.");
+			
+			do {
+				System.out.println();
+				System.out.print("Introduza o número da operação que deseja realizar: ");
+				opcao = sc.nextLine();
+				
+				try {
+					// Passando o valor que o usuario introduzio para um inteiro
+					opcaoEscolhida = Integer.parseInt(opcao);
+				} catch(Exception e) {
+					System.out.println("Você tem que introduzir um número "
+							+ "para que umas dessas opções seja realizada!");
+				}
+				// Continua o programa caso ocorra algum erro
+			} while(opcaoEscolhida < 0 || opcaoEscolhida > 7 || opcao.isEmpty());
+			
+			switch (opcaoEscolhida) {
+				case 1: // Introduzi uma receita
+					introduzirReceita();
+					break;
+				case 2: // Introduzi uma despesa
+					introduzirDespesa();
+					break;
+				case 3: // Mostrar as receitas
+					mostrarListaReceita();
+					break;
+				case 4: // Mostrar as Despesas
+					mostrarListaDespesa();
+					break;
+				case 5: // Mostrar saldo da conta
+					System.out.println(novaConta.toString());
+					break;
+				case 6: // Mostrar sua conta
+					System.out.println(novaConta.toStringAll());
+					for(int i = 0; i < novaConta.getListaReceita().size(); i++) {
+						System.out.println(novaConta.getListaReceita().get(i));
+					}
+					for(int i = 0; i < novaConta.getListaDespesa().size(); i++) {
+						System.out.println(novaConta.getListaDespesa().get(i));
+					}
+					break;
+				case 7: // Voltar para a pagina inicial
+					paginaInicial();
+					break;
+				case 0: // Sair do programa
+					System.out.println("Programa finalizado\nObrigado por utilizar a aplicação!");
+					break;	
+			}
+			
+		} while(opcaoEscolhida != 0);
+	}
+
 	/**
 	 * Cria uma Conta
 	 */
@@ -261,7 +330,7 @@ public class Program {
 		// Pedido do nome do usuário
 		do {
 			System.out.print("Introduza o nome do usuário: ");
-			nomeUsuario = sc.nextLine().toUpperCase();
+			nomeUsuario = sc.nextLine();
 		} while(nomeUsuario.isEmpty());
 		
 		// Pedido da idade do usuário
@@ -298,11 +367,11 @@ public class Program {
 				System.out.println("O cpf só pode conter números");
 				
 			}
-		} while(novoUsuario.setCPF(cpfUsuario) != true);
+		} while(novaConta.setCPF(cpfUsuario) != true);
 		
 		// Pedido do tipo de conta do usuário
 		do {
-			System.out.print("Introduza o tipo de conta do usuario(carteira, corrente, poupanca): ");
+			System.out.print("Introduza o tipo de conta(carteira, corrente, poupanca): ");
 			
 			try {
 				
@@ -322,72 +391,9 @@ public class Program {
 			instituicaoFinanceira = sc.nextLine();
 		} while(instituicaoFinanceira == "");
 	
-		novoUsuario.setNome(nomeUsuario);
-		novoUsuario.setIdade(idadeUsu);
 		return true;
 	}
 	
-	/**
-	 * Metodo que visualiza o menu de opções do usuario
-	 */
-	private static void menuUsuario() {
-		do {
-		
-			System.out.println();
-			System.out.println("-----------------------------------");
-			System.out.println("   Seção de despesas e receitas.");
-			System.out.println("-----------------------------------");
-			System.out.println();
-			System.out.println("1. Introduzir uma nova despesa.");
-			System.out.println("2. Introduzir uma nova receita.");
-			System.out.println("3. Mostrar despesas.");
-			System.out.println("4. Mostrar receitas.");
-			System.out.println("5. Mostrar saldo da conta.");
-			System.out.println("6. Voltar para a seção de contas.");
-			System.out.println("0. Sair.");
-			
-			do {
-				System.out.println();
-				System.out.print("Introduza o número da operação que deseja realizar: ");
-				opcao = sc.nextLine();
-				
-				try {
-					// Passando o valor que o usuario introduzio para um inteiro
-					opcaoEscolhida = Integer.parseInt(opcao);
-				} catch(Exception e) {
-					System.out.println("Você tem que introduzir um número "
-							+ "para que umas dessas opções seja realizada!");
-				}
-				// Continua o programa caso ocorra algum erro
-			} while(opcaoEscolhida < 0 || opcaoEscolhida > 6 || opcao.isEmpty());
-			
-			switch (opcaoEscolhida) {
-				case 1: // Introduzi uma despesa
-					introduzirDespesa();
-					break;
-				case 2: // Introduzi uma receita
-					introduzirReceita();
-					break;
-				case 3: // Mostrar as Despesas
-					mostrarListaDespesa();
-					break;
-				case 4: // Mostrar as receitas
-					mostrarListaReceita();
-					break;
-				case 5: // Mostrar saldo da conta
-					System.out.println(novaConta.toString());
-					break;
-				case 6: // Voltar para a pagina inicial
-					paginaInicial();
-					break;
-				case 0: // Sair do programa
-					System.out.println("Programa finalizado\nObrigado por utilizar a aplicação!");
-					break;	
-			}
-			
-		} while(opcaoEscolhida != 0);
-	}
-
 	/**
 	 * Metodo que introduz receita na conta
 	 */
@@ -421,12 +427,18 @@ public class Program {
 				System.out.println("O tipo de receita tem que ser um dos listados a cima.");
 
 			}
-		} while(tipoDespesa == null);
+		} while(tipoReceita == null);
 		
 		for(Conta conta : contas.getContas()) {
-			if(conta.getUsuario().getCpf() == novaConta.getUsuario().getCpf()) {
+			if(conta.getCpf() == novaConta.getCpf()) {
+				String descricao = descricaoTransferencia;
 				conta.addReceita(descricaoTransferencia, custoTransferencia, new Date(), tipoReceita);
 				System.out.println("Receita registrada com sucesso.");
+				for (Receita receita : conta.getListaReceita()) {
+					if(descricao.equals(receita.getDescricao())){
+						contaDao.inserirReceita(receita);
+					}
+				}
 			} else {
 				System.out.print("falha ao registrar receita");
 			}
@@ -478,16 +490,26 @@ public class Program {
 		if(saldoNegativo == false) {
 			// No caso do saldo ser negativo 
 			novaConta.addDespesa(descricaoTransferencia, custoTransferencia, new Date(), tipoDespesa);
+			for(Conta conta : contas.getContas()) {
+				if(conta.getCpf() == novaConta.getCpf()) {
+					String descricao = descricaoTransferencia;
+					for (Despesa despesa : conta.getListaDespesa()) {
+						if(descricao.equals(despesa.getDescricao())){
+							contaDao.inserirDespesa(despesa);
+							
+						}
+					}
+				}
+			}
 		}
 	}
 	
 	/*
 	 * Metodo que mostrará a lista de receitas
 	 */
-	
 	private static void mostrarListaReceita() {
 		for(Conta conta : contas.getContas()) {
-			if(conta.getUsuario().getCpf() == novaConta.getUsuario().getCpf()) {
+			if(conta.getCpf() == novaConta.getCpf()) {
 				for(int i = 0; i < conta.getListaReceita().size(); i++) {
 					System.out.println(conta.getListaReceita().get(i));
 				}
@@ -497,11 +519,10 @@ public class Program {
 	
 	/*
 	 * Metodo que mostrará a lista de despesas
-	 */
-	
+	 */	
 	private static void mostrarListaDespesa() {
 		for(Conta conta : contas.getContas()) {
-			if(conta.getUsuario().getCpf() == novaConta.getUsuario().getCpf()) {
+			if(conta.getCpf() == novaConta.getCpf()) {
 				for(int i = 0; i < conta.getListaDespesa().size(); i++) {
 					System.out.println(conta.getListaDespesa().get(i));
 				}
@@ -509,29 +530,13 @@ public class Program {
 		}
 	}
 	
-	public static void main(String[] args) throws SQLException {
+	/*
+	 * Metodo Principal
+	 */
+	public static void main(String[] args) {
 		
 		Locale.setDefault(Locale.US);
-		
-		Connection conexao = null;
-        try {
-            Class.forName("com.mysql.jdbc.Driver");
-            conexao = DriverManager.getConnection("jdbc:mysql://localhost/gestaoFinanceira", "root", "janetenuma2002");
 
-            /* ResultSet rsCliente = conexao.createStatement().executeQuery("SELECT * FROM CLIENTE");
-            while(rsCliente.next()) {
-                System.out.println("Nome: " + rsCliente.getString("nome"));
-            } */
-        } catch (ClassNotFoundException ex) {
-            System.out.println("Driver do banco de dados não localizado.");
-        } catch (SQLException ex) {
-            System.out.println("Ocorreu um erro ao conectar ao banco: " + ex.getMessage());
-        } finally {
-            if(conexao != null) {
-                conexao.close();
-            }
-        }
-		
 		// Inicia o programa dando opções do programa ao usuario 
 		paginaInicial();
 		
